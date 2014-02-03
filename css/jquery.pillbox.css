@@ -4,6 +4,7 @@
 .pillbox-wrap {
 	border: 1px solid #999;
 	cursor: text;
+	position: relative;
 }
 .pillbox-list {
 	display:inline;
@@ -38,4 +39,30 @@
 	line-height: 1em;
 	margin: 0 0 0 1em;
 	padding: 0 .25em;
+}
+.pillbox-auto-suggest-wrap {
+	background-color: #fff;
+	border: 1px solid #999;
+	display: none;
+	position: absolute;
+}
+.pillbox-auto-suggest-list {
+	cursor:pointer;
+	list-style: none;
+	margin: 0;
+	min-width: 10em;
+	padding: 0;
+}
+.pillbox-auto-suggest-item {
+	display: none;
+	list-style: none;
+	margin: 0;
+	padding: .2em .5em;
+	white-space: nowrap;
+}
+.pillbox-auto-suggest-item:hover {
+	background-color:#ccc;
+}
+.highlight.pillbox-auto-suggest-item {
+	background-color:#ccc;
 }

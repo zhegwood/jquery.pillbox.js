@@ -3,7 +3,8 @@
 	$.fn.pillbox = function(config){
 
 		var options = $.extend({
-			
+			values: [],
+			data: []
 		},config);
 
 		return this.each(function(){
@@ -17,6 +18,20 @@
 					obj.hookupWrapper();
 					obj.hookupPillbox();
 					obj.hookupDelete();
+					obj.setValues(options.values);
+					if (options.data.length > 0) {
+						obj.buildAutoComplete();
+					}
+				},
+				
+				addAutoCompleteValue: function() {
+					var word = obj.currentHighlight.html();
+					obj.values.push({
+						"key": word,
+						"value": obj.currentHighlight.attr("data-val")
+					});
+					obj.addWord(word);
+					obj.autoComplete.hide();
 				},
 				
 				addWord: function(word) {
@@ -25,10 +40,22 @@
 
 					obj.list.append(item);
 					pbox.val("");
-					obj.values.push(word);
 					setTimeout(function(){
 						pbox.focus();
 					},100);
+				},
+				
+				buildAutoComplete: function() {
+					obj.autoComplete = $(document.createElement("div")).addClass("pillbox-auto-suggest-wrap");
+					var ul = $(document.createElement("ul")).addClass("pillbox-auto-suggest-list"),
+						a, len, val;
+
+					obj.autoComplete.append(ul).appendTo($(".pillbox-wrap"));
+					
+					for (a = 0, len = options.data.length; a < len; a++) {
+						val = options.data[a];
+						ul.append($(document.createElement("li")).addClass("pillbox-auto-suggest-item").attr("data-val",val.value).html(val.key));
+					}
 				},
 				
 				clearValues: function(){
@@ -37,6 +64,30 @@
 						obj.removeWord(obj.values[a]);
 					}
 					$(".pillbox-item").remove();
+				},
+				
+				filterList: function() {
+					var val = pbox.val().toLowerCase(),
+						items = $(".pillbox-auto-suggest-item"),
+						item, val;
+						
+					delete obj.currentHighlight;
+					items.removeClass("highlight");
+						
+					items.each(function(idx, item){
+						item = $(item),
+						html = item.html().toLowerCase(),
+						dataval = item.attr("data-val");
+						if (html.indexOf(val) != -1 || dataval.indexOf(val) != -1) {
+							if (!obj.currentHighlight) {
+								obj.currentHighlight = item;
+								item.addClass("highlight");
+							}
+							item.show();
+						} else {
+							item.hide();
+						}
+					});
 				},
 				
 				getValues: function() {
@@ -61,12 +112,28 @@
 							case 9: //tab key
 							case 188: //comma
 								if (pbox.val() === "") { return; }
-								obj.addWord(pbox.val());
+								if (obj.autoComplete && obj.autoComplete.css("display") != "none") {
+									obj.addAutoCompleteValue();
+								} else {
+									var word = pbox.val();
+									obj.addWord(word);
+									obj.values.push(word);
+								}
 								break;
 							case 8: //backspace
 								obj.onBackspace();
 								break;
+							case 38: //up arrow
+								obj.onUpArrow();
+								break;
+							case 40: //down arrow
+								obj.onDownArrow();
+								break;
 							default:
+								if (options.data.length > 0) {
+									obj.showDropdown();
+									obj.filterList();
+								}
 								break;
 						}
 					});
@@ -100,10 +167,28 @@
 					li.remove();
 				},
 				
+				onDownArrow: function() {
+					var next = obj.currentHighlight.next();
+					if (next.length == 0) {return;}
+					obj.currentHighlight.removeClass("highlight");
+					next.addClass("highlight");
+					obj.currentHighlight = next;
+				},
+				
+				onUpArrow: function() {
+					var prev = obj.currentHighlight.prev();
+					if (prev.length == 0) {return;}
+					obj.currentHighlight.removeClass("highlight");
+					prev.addClass("highlight");
+					obj.currentHighlight = prev;
+				},
+				
 				removeWord: function(word) {
 					var a, val;
 					for (a = obj.values.length-1; a >= 0; a--) {
-						if (obj.values[a] == word) {
+						val = obj.values[a];
+
+						if (val === word || (val.key && val.key === word)) {
 							obj.values.splice(a,1);
 							break;
 						}
@@ -118,7 +203,20 @@
 					var a, len, val;
 					for (a = 0, len = values.length; a < len; a++) {
 						val = values[a];
-						obj.addWord(val);
+						if (typeof val === "string") {
+							obj.addWord(val);	
+						} else {
+							obj.addWord(val.key);
+						}
+						obj.values.push(val);
+					}
+				},
+				
+				showDropdown: function() {
+					if (pbox.val() !== "") {
+						obj.autoComplete.show();
+					} else {
+						obj.autoComplete.hide();
 					}
 				},
 				

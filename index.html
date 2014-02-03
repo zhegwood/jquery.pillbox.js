@@ -10,12 +10,28 @@
 </body>
 <script type="text/javascript">
 	$(document).ready(function(){
-		var pillbox = $("#pillbox-input").pillbox();
+		var pillbox;
+		
+		$.ajax({
+			url: "/js/options.json",
+			type: "GET",
+			dataType: "json",
+			success: function(data){
+				pillbox = $("#pillbox-input").pillbox({
+					//values: [{"key":"Iowa","value":"IA"}],
+					//data: data
+				});
+			},
+			error: function(){
+				console.log("error",arguments);
+			}
+		});
+
 		$("body").on("click","#get-values",function(){
 			console.log(pillbox[0].getValues());
 		});
 		$("body").on("click","#set-values",function(){
-			pillbox[0].setValues(["awesome","neato"]);
+			pillbox[0].setValues([{"key":"Iowa","value":"IA"}]);
 		});
 		$("body").on("click","#clear-values",function(){
 			pillbox[0].clearValues();
