@@ -111,6 +111,7 @@
 				},
 				
 				setValues: function(values) {
+					obj.clearValues();
 					if (typeof values === "string") {
 						values = [values];
 					}
