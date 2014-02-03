@@ -56,6 +56,14 @@
 						val = options.data[a];
 						ul.append($(document.createElement("li")).addClass("pillbox-auto-suggest-item").attr("data-val",val.value).html(val.key));
 					}
+					
+					$("body").on("click",".pillbox-auto-suggest-item",function(){
+						$(".pillbox-auto-suggest-item").removeClass("highlight");
+						var li = $(this);
+						li.addClass("highlight");
+						obj.currentHighlight = li;
+						obj.addAutoCompleteValue();
+					});
 				},
 				
 				clearValues: function(){
