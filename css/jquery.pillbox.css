@@ -1,0 +1,41 @@
+.pillbox-input {
+	border:0;
+}
+.pillbox-wrap {
+	border: 1px solid #999;
+	cursor: text;
+}
+.pillbox-list {
+	display:inline;
+	list-style: none;
+	margin: 0;
+	overflow: hidden;
+	padding: 0;
+}
+.pillbox-item {
+	background-color: #999;
+	border: 1px solid #999;
+	border-radius: 4px;
+	float:left;
+	line-height: 1em;
+	padding: .2em .2em .2em .2em;
+	margin: .1em .2em;
+}
+.highlighted.pillbox-item {
+	border: 1px solid black;
+	background-color: #ccc;
+}
+.pillbox-input {
+	display: inline;
+	margin: .37em 0;
+}
+.pillbox-delete {
+	background-color:#fff;
+	border-radius: 2px;
+	cursor: pointer;
+	display: inline-block;
+	font-size: .75em;
+	line-height: 1em;
+	margin: 0 0 0 1em;
+	padding: 0 .25em;
+}

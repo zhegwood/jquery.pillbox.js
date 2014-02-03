@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+	<title>jquery pillbox</title>
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/jquery.pillbox.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/jquery.pillbox.css" />
+<body>
+	<input type="text" id="pillbox-input"/>
+	<button id="get-values">Get Values</button> <button id="set-values">Set Values</button> <button id="clear-values">Clear Values</button>
+</body>
+<script type="text/javascript">
+	$(document).ready(function(){
+		var pillbox = $("#pillbox-input").pillbox();
+		$("body").on("click","#get-values",function(){
+			console.log(pillbox[0].getValues());
+		});
+		$("body").on("click","#set-values",function(){
+			pillbox[0].setValues(["awesome","neato"]);
+		});
+		$("body").on("click","#clear-values",function(){
+			pillbox[0].clearValues();
+		});
+	});
+</script>
+</html>
