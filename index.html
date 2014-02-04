@@ -7,18 +7,22 @@
 <body>
 	<input type="text" id="pillbox-input"/>
 	<button id="get-values">Get Values</button> <button id="set-values">Set Values</button> <button id="clear-values">Clear Values</button>
+	<br/><br/>
+	<input type="text" id="pillbox-input-2"/>
+	<button id="get-values-2">Get Values</button> <button id="set-values-2">Set Values</button> <button id="clear-values-2">Clear Values</button>
 </body>
 <script type="text/javascript">
 	$(document).ready(function(){
-		var pillbox;
+		var pillbox1,
+			pillbox2;
 		
 		$.ajax({
 			url: "/js/options.json",
 			type: "GET",
 			dataType: "json",
 			success: function(data){
-				pillbox = $("#pillbox-input").pillbox({
-					//values: [{"key":"Iowa","value":"IA"}],
+				pillbox1 = $("#pillbox-input").pillbox({
+					values: [{"key":"Iowa","value":"IA"}],
 					data: data
 				});
 			},
@@ -28,13 +32,25 @@
 		});
 
 		$("body").on("click","#get-values",function(){
-			console.log(pillbox[0].getValues());
+			console.log(pillbox1[0].getValues());
 		});
 		$("body").on("click","#set-values",function(){
-			pillbox[0].setValues([{"key":"Iowa","value":"IA"}]);
+			pillbox1[0].setValues([{"key":"Colorado","value":"CO"}]);
 		});
 		$("body").on("click","#clear-values",function(){
-			pillbox[0].clearValues();
+			pillbox1[0].clearValues();
+		});
+		
+		pillbox2 = $("#pillbox-input-2").pillbox();
+		
+		$("body").on("click","#get-values-2",function(){
+			console.log(pillbox2[0].getValues());
+		});
+		$("body").on("click","#set-values-2",function(){
+			pillbox2[0].setValues(["Iowa","Nebraska"]);
+		});
+		$("body").on("click","#clear-values-2",function(){
+			pillbox2[0].clearValues();
 		});
 	});
 </script>

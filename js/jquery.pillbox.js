@@ -8,10 +8,13 @@
 		},config);
 
 		return this.each(function(){
-			var pbox = $(this);
-
+			
+			var self = this,
+				oSelf = $(this);
+			
+			oSelf.values = [];
+			
 			var obj = {
-				values: [],
 
 				init: function(){
 					obj.wrapInput();
@@ -26,57 +29,63 @@
 				
 				addAutoCompleteValue: function() {
 					var word = obj.currentHighlight.html();
-					obj.values.push({
+					oSelf.values.push({
 						"key": word,
 						"value": obj.currentHighlight.attr("data-val")
 					});
 					obj.addWord(word);
-					obj.autoComplete.hide();
+					oSelf.autoComplete.hide();
+					oSelf.autoComplete.find(".pillbox-auto-suggest-item").removeClass("highlight");
+					delete obj.currentHighlight;
 				},
 				
 				addWord: function(word) {
 
 					var item = $(document.createElement("li")).addClass("pillbox-item").html(word+"<span class='pillbox-delete'>x</span>");
 
-					obj.list.append(item);
-					pbox.val("");
+					oSelf.list.append(item);
+					oSelf.val("");
 					setTimeout(function(){
-						pbox.focus();
+						self.focus();
 					},100);
 				},
 				
 				buildAutoComplete: function() {
-					obj.autoComplete = $(document.createElement("div")).addClass("pillbox-auto-suggest-wrap");
+					oSelf.autoComplete = $(document.createElement("div")).addClass("pillbox-auto-suggest-wrap");
 					var ul = $(document.createElement("ul")).addClass("pillbox-auto-suggest-list"),
 						a, len, val;
 
-					obj.autoComplete.append(ul).appendTo($(".pillbox-wrap"));
+					oSelf.autoComplete.append(ul).appendTo(oSelf.parent());
 					
 					for (a = 0, len = options.data.length; a < len; a++) {
 						val = options.data[a];
 						ul.append($(document.createElement("li")).addClass("pillbox-auto-suggest-item").attr("data-val",val.value).html(val.key));
 					}
 					
-					$("body").on("click",".pillbox-auto-suggest-item",function(){
+					oSelf.parent().find(".pillbox-auto-suggest-wrap").on("click",".pillbox-auto-suggest-item",function(){
 						$(".pillbox-auto-suggest-item").removeClass("highlight");
 						var li = $(this);
 						li.addClass("highlight");
 						obj.currentHighlight = li;
 						obj.addAutoCompleteValue();
 					});
+					
+					$("body").on("click",function(){
+						oSelf.autoComplete.hide();
+					});
 				},
 				
 				clearValues: function(){
 					var a;
-					for (a = obj.values.length-1; a >= 0; a--) {
-						obj.removeWord(obj.values[a]);
+					for (a = oSelf.values.length-1; a >= 0; a--) {
+						obj.removeWord(oSelf.values[a]);
 					}
-					$(".pillbox-item").remove();
+					oSelf.parent().find(".pillbox-item").remove();
 				},
 				
 				filterList: function() {
-					var val = pbox.val().toLowerCase(),
-						items = $(".pillbox-auto-suggest-item"),
+					var val = oSelf.val().toLowerCase(),
+						items = oSelf.parent().find(".pillbox-auto-suggest-item"),
 						item, val;
 						
 					delete obj.currentHighlight;
@@ -99,37 +108,39 @@
 				},
 				
 				getValues: function() {
-					return obj.values;
+					return oSelf.values;
 				},
 				
 				hookupDelete: function() {
-					$("body").on("click",".pillbox-delete",function(){
+					oSelf.parent().on("click",".pillbox-delete",function(){
 						obj.onDeleteClick(this);
 					});
 				},
 				
 				hookupPillbox: function() {
-					$("body").on("keyup",pbox,function(e){
+					oSelf.on("keyup",function(e){
 						e.preventDefault();
 						e.stopPropagation();
-
+						
 						var key = e.which;
 						
 						switch(key) {
-							case 13: //enter key
-							case 9: //tab key
-							case 188: //comma
-								if (pbox.val() === "") { return; }
-								if (obj.autoComplete && obj.autoComplete.css("display") != "none") {
+							case 13: //enter
+							case 9: //tab
+								if (oSelf.val() === "" && oSelf.autoComplete.css("display") === "none") { return; }
+								if (oSelf.autoComplete && oSelf.autoComplete.css("display") !== "none") {
 									obj.addAutoCompleteValue();
 								} else {
-									var word = pbox.val();
+									var word = oSelf.val();
 									obj.addWord(word);
-									obj.values.push(word);
+									oSelf.values.push(word);
 								}
 								break;
 							case 8: //backspace
 								obj.onBackspace();
+								break;
+							case 27: //esc key
+								oSelf.autoComplete.hide();
 								break;
 							case 38: //up arrow
 								obj.onUpArrow();
@@ -148,21 +159,23 @@
 				},
 				
 				hookupWrapper: function() {
-					$("body").on("click",obj.wrapper,function(){
-						pbox.focus();
+					oSelf.parent().on("click",function(){
+						oSelf.focus();
 					});
 				},
 				
 				onBackspace: function() {
+					var kids = oSelf.list.children();
 
-					var kids = obj.list.children();
-
-					if (pbox.val() == "" && kids.length > 0) {
+					if (oSelf.val() == "" && kids.length > 0) {
 						var last = kids.last();
 						if (last.hasClass("highlighted")) {
-							obj.onDeleteClick(last.find(".pillbox-delete"));
+							obj.onDeleteClick(last.find(".pillbox-delete")[0]);
 						} else {
 							last.addClass("highlighted");
+						}
+						if (options.data) {
+							obj.filterList();
 						}
 					}
 				},
@@ -176,6 +189,15 @@
 				},
 				
 				onDownArrow: function() {
+					if (oSelf.autoComplete.css("display") == "none") {
+						oSelf.autoComplete.css("display","block");
+						var items = oSelf.autoComplete.find(".pillbox-auto-suggest-item");
+							item = $(items[0]);
+						items.show();
+						item.addClass("highlight");
+						obj.currentHighlight = item;
+						return;
+					}
 					var next = obj.currentHighlight.next();
 					if (next.length == 0) {return;}
 					obj.currentHighlight.removeClass("highlight");
@@ -184,6 +206,7 @@
 				},
 				
 				onUpArrow: function() {
+
 					var prev = obj.currentHighlight.prev();
 					if (prev.length == 0) {return;}
 					obj.currentHighlight.removeClass("highlight");
@@ -193,17 +216,17 @@
 				
 				removeWord: function(word) {
 					var a, val;
-					for (a = obj.values.length-1; a >= 0; a--) {
-						val = obj.values[a];
+					for (a = oSelf.values.length-1; a >= 0; a--) {
+						val = oSelf.values[a];
 
 						if (val === word || (val.key && val.key === word)) {
-							obj.values.splice(a,1);
+							oSelf.values.splice(a,1);
 							break;
 						}
 					}
 				},
 				
-				setValues: function(values) {
+				setValues: function(values){
 					obj.clearValues();
 					if (typeof values === "string") {
 						values = [values];
@@ -216,36 +239,35 @@
 						} else {
 							obj.addWord(val.key);
 						}
-						obj.values.push(val);
+						oSelf.values.push(val);
 					}
 				},
 				
 				showDropdown: function() {
-					if (pbox.val() !== "") {
-						obj.autoComplete.show();
+					if (oSelf.val() !== "") {
+						oSelf.autoComplete.show();
 					} else {
-						obj.autoComplete.hide();
+						oSelf.autoComplete.hide();
 					}
 				},
 				
 				wrapInput: function(){
-					obj.wrapper = $(document.createElement("div")).addClass("pillbox-wrap");
-					obj.list = $(document.createElement("ul")).addClass("pillbox-list");
+					oSelf.wrapper = $(document.createElement("div")).addClass("pillbox-wrap");
+					oSelf.list = $(document.createElement("ul")).addClass("pillbox-list");
 					var clear = $(document.createElement("div")).css("clear","both");
-					
-					pbox.addClass("pillbox-input").attr("placeholder","type a word and press enter, tab, or comma");
-					pbox.wrap(obj.wrapper);
-					obj.list.insertBefore(pbox);
-					clear.insertAfter(pbox);
+					oSelf.addClass("pillbox-input").attr("placeholder","type a word and press enter, tab, or comma");
+					oSelf.wrap(oSelf.wrapper);
+					oSelf.list.insertBefore(oSelf);
+					clear.insertAfter(oSelf);
 				}
 			};
 			
 			obj.init();
 			
 			//public functions
-			this.getValues = obj.getValues;
-			this.setValues = obj.setValues;
-			this.clearValues = obj.clearValues;
+			self.getValues = obj.getValues;
+			self.setValues = obj.setValues;
+			self.clearValues = obj.clearValues;
 		});
 	};
 }(jQuery));
