@@ -1,21 +1,16 @@
 (function($){
-
 	$.fn.pillbox = function(config){
-
 		var options = $.extend({
 			values: [],
 			data: []
 		},config);
 
 		return this.each(function(){
-			
 			var self = this,
 				oSelf = $(this);
-			
-			oSelf.values = [];
-			
-			var obj = {
+				oSelf.values = [];
 
+			var obj = {
 				init: function(){
 					obj.wrapInput();
 					obj.hookupWrapper();
@@ -26,21 +21,22 @@
 						obj.buildAutoComplete();
 					}
 				},
-				
+
 				addAutoCompleteValue: function() {
 					var word = obj.currentHighlight.html();
+
 					oSelf.values.push({
 						"key": word,
 						"value": obj.currentHighlight.attr("data-val")
 					});
+
 					obj.addWord(word);
 					oSelf.autoComplete.hide();
 					oSelf.autoComplete.find(".pillbox-auto-suggest-item").removeClass("highlight");
 					delete obj.currentHighlight;
 				},
-				
-				addWord: function(word) {
 
+				addWord: function(word) {
 					var item = $(document.createElement("li")).addClass("pillbox-item").html(word+"<span class='pillbox-delete'>x</span>");
 
 					oSelf.list.append(item);
@@ -49,52 +45,58 @@
 						self.focus();
 					},100);
 				},
-				
+
 				buildAutoComplete: function() {
 					oSelf.autoComplete = $(document.createElement("div")).addClass("pillbox-auto-suggest-wrap");
+
 					var ul = $(document.createElement("ul")).addClass("pillbox-auto-suggest-list"),
 						a, len, val;
 
 					oSelf.autoComplete.append(ul).appendTo(oSelf.parent());
-					
+
 					for (a = 0, len = options.data.length; a < len; a++) {
 						val = options.data[a];
 						ul.append($(document.createElement("li")).addClass("pillbox-auto-suggest-item").attr("data-val",val.value).html(val.key));
 					}
-					
+
 					oSelf.parent().find(".pillbox-auto-suggest-wrap").on("click",".pillbox-auto-suggest-item",function(){
 						$(".pillbox-auto-suggest-item").removeClass("highlight");
+
 						var li = $(this);
+
 						li.addClass("highlight");
 						obj.currentHighlight = li;
 						obj.addAutoCompleteValue();
 					});
-					
+
 					$("body").on("click",function(){
 						oSelf.autoComplete.hide();
 					});
 				},
-				
+
 				clearValues: function(){
 					var a;
+
 					for (a = oSelf.values.length-1; a >= 0; a--) {
 						obj.removeWord(oSelf.values[a]);
 					}
+
 					oSelf.parent().find(".pillbox-item").remove();
 				},
-				
+
 				filterList: function() {
 					var val = oSelf.val().toLowerCase(),
 						items = oSelf.parent().find(".pillbox-auto-suggest-item"),
 						item, val;
-						
+
 					delete obj.currentHighlight;
 					items.removeClass("highlight");
-						
+
 					items.each(function(idx, item){
 						item = $(item),
 						html = item.html().toLowerCase(),
 						dataval = item.attr("data-val");
+
 						if (html.indexOf(val) != -1 || dataval.indexOf(val) != -1) {
 							if (!obj.currentHighlight) {
 								obj.currentHighlight = item;
@@ -106,24 +108,44 @@
 						}
 					});
 				},
-				
+
+				findNext: function(item) {
+					var next = item.next();
+
+					if (next.css("display") !== "none") {
+						obj.onNextFound(next);
+					} else {
+						obj.findNext(next);
+					}
+				},
+
+				findPrev: function(item) {
+					var prev = item.prev();
+
+					if (prev.css("display") !== "none") {
+						obj.onPrevFound(prev);
+					} else {
+						obj.findPrev(prev);
+					}
+				},
+
 				getValues: function() {
 					return oSelf.values;
 				},
-				
+
 				hookupDelete: function() {
 					oSelf.parent().on("click",".pillbox-delete",function(){
 						obj.onDeleteClick(this);
 					});
 				},
-				
+
 				hookupPillbox: function() {
 					oSelf.on("keyup",function(e){
 						e.preventDefault();
 						e.stopPropagation();
-						
+
 						var key = e.which;
-						
+
 						switch(key) {
 							case 13: //enter
 							case 9: //tab
@@ -157,13 +179,13 @@
 						}
 					});
 				},
-				
+
 				hookupWrapper: function() {
 					oSelf.parent().on("click",function(){
 						oSelf.focus();
 					});
 				},
-				
+
 				onBackspace: function() {
 					var kids = oSelf.list.children();
 
@@ -179,53 +201,59 @@
 						}
 					}
 				},
-				
+
 				onDeleteClick: function(el) {
 					var li = $(el).closest(".pillbox-item");
+
 					el.remove();
 					var word = li.html();
 					obj.removeWord(word);
 					li.remove();
 				},
-				
+
 				onDownArrow: function() {
-					if (oSelf.autoComplete.css("display") == "none") {
+					if (oSelf.autoComplete.css("display") === "none") {
 						oSelf.autoComplete.css("display","block");
-						var items = oSelf.autoComplete.find(".pillbox-auto-suggest-item");
+						var items = oSelf.autoComplete.find(".pillbox-auto-suggest-item"),
 							item = $(items[0]);
 						items.show();
 						item.addClass("highlight");
 						obj.currentHighlight = item;
 						return;
 					}
-					var next = obj.currentHighlight.next();
+					obj.findNext(obj.currentHighlight);
+				},
+
+				onNextFound: function(next) {
 					if (next.length == 0) {return;}
 					obj.currentHighlight.removeClass("highlight");
 					next.addClass("highlight");
 					obj.currentHighlight = next;
 				},
-				
-				onUpArrow: function() {
 
-					var prev = obj.currentHighlight.prev();
+				onPrevFound: function(prev){
 					if (prev.length == 0) {return;}
 					obj.currentHighlight.removeClass("highlight");
 					prev.addClass("highlight");
 					obj.currentHighlight = prev;
 				},
-				
+
+				onUpArrow: function() {
+					obj.findPrev(obj.currentHighlight);
+				},
+
 				removeWord: function(word) {
 					var a, val;
+
 					for (a = oSelf.values.length-1; a >= 0; a--) {
 						val = oSelf.values[a];
-
 						if (val === word || (val.key && val.key === word)) {
 							oSelf.values.splice(a,1);
 							break;
 						}
 					}
 				},
-				
+
 				setValues: function(values){
 					obj.clearValues();
 					if (typeof values === "string") {
@@ -235,14 +263,14 @@
 					for (a = 0, len = values.length; a < len; a++) {
 						val = values[a];
 						if (typeof val === "string") {
-							obj.addWord(val);	
+							obj.addWord(val);         
 						} else {
 							obj.addWord(val.key);
 						}
 						oSelf.values.push(val);
 					}
 				},
-				
+
 				showDropdown: function() {
 					if (oSelf.val() !== "") {
 						oSelf.autoComplete.show();
@@ -250,20 +278,20 @@
 						oSelf.autoComplete.hide();
 					}
 				},
-				
+
 				wrapInput: function(){
 					oSelf.wrapper = $(document.createElement("div")).addClass("pillbox-wrap");
 					oSelf.list = $(document.createElement("ul")).addClass("pillbox-list");
 					var clear = $(document.createElement("div")).css("clear","both");
-					oSelf.addClass("pillbox-input").attr("placeholder","type a word and press enter, tab, or comma");
+					oSelf.addClass("pillbox-input").attr("placeholder","type a word and press enter");
 					oSelf.wrap(oSelf.wrapper);
 					oSelf.list.insertBefore(oSelf);
 					clear.insertAfter(oSelf);
 				}
 			};
-			
+
 			obj.init();
-			
+
 			//public functions
 			self.getValues = obj.getValues;
 			self.setValues = obj.setValues;
