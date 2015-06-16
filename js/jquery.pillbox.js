@@ -23,17 +23,21 @@
 				},
 
 				addAutoCompleteValue: function() {
-					var word = obj.currentHighlight.html();
+					if (obj.currentHighlight != undefined) {
+                        var word = obj.currentHighlight.html();
 
-					oSelf.values.push({
-						"key": word,
-						"value": obj.currentHighlight.attr("data-val")
-					});
+                        oSelf.values.push({
+                            "key": word,
+                            "value": obj.currentHighlight.attr("data-val")
+                        });
 
-					obj.addWord(word);
-					oSelf.autoComplete.hide();
-					oSelf.autoComplete.find(".pillbox-auto-suggest-item").removeClass("highlight");
-					delete obj.currentHighlight;
+                        obj.addWord(word);
+                        oSelf.autoComplete.hide();
+                        oSelf.autoComplete.find(".pillbox-auto-suggest-item").removeClass("highlight");
+                        delete obj.currentHighlight;
+                    } else {
+                        obj.addWord(oSelf.val());
+                    }
 				},
 
 				addWord: function(word) {
