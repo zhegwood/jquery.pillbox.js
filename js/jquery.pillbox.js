@@ -40,18 +40,23 @@
                     }
 				},
 
+                checkWordValue : function(word) {
+                    var wordTrimmed = word.trim(), isAlreadyPresent = (oSelf.values.indexOf(wordTrimmed) >= 0);
+
+                    return wordTrimmed.length > 0 && isAlreadyPresent === false;
+                },
+
 				addWord: function(word) {
-                    var wordTrimmed = word.trim();
-                    if (wordTrimmed.length > 0) {
-                        var item = $(document.createElement("li")).addClass("pillbox-item").html(wordTrimmed + "<span class='pillbox-delete'>x</span>");
+                    if (obj.checkWordValue(word)) {
+                        var item = $(document.createElement("li")).addClass("pillbox-item").html(word.trim() + "<span class='pillbox-delete'>x</span>");
 
                         oSelf.list.append(item);
-
                         oSelf.val("");
-                        setTimeout(function () {
-                            self.focus();
-                        }, 100);
                     }
+
+                    setTimeout(function () {
+                        self.focus();
+                    }, 100);
 				},
 
 				buildAutoComplete: function() {
@@ -154,6 +159,8 @@
 
 						var key = e.which;
 
+                        if(key != 8) { obj.removeHighlighted(); }
+
 						switch(key) {
 							case 13: //enter
 							case 9: //tab
@@ -161,9 +168,11 @@
 								if (oSelf.autoComplete && oSelf.autoComplete.css("display") !== "none") {
 									obj.addAutoCompleteValue();
 								} else {
-									var word = oSelf.val();
-									obj.addWord(word);
-									oSelf.values.push(word);
+									var word = oSelf.val(), wordTrimmed = word.trim();
+                                    if(obj.checkWordValue(word)) {
+                                        obj.addWord(wordTrimmed);
+                                        oSelf.values.push(wordTrimmed);
+                                    }
 								}
 								break;
 							case 8: //backspace
@@ -193,6 +202,12 @@
 						oSelf.focus();
 					});
 				},
+
+                removeHighlighted : function() {
+                    var kids = oSelf.list.children();
+
+                    kids.removeClass('highlighted');
+                },
 
 				onBackspace: function() {
 					var kids = oSelf.list.children();
