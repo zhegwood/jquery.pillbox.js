@@ -41,13 +41,17 @@
 				},
 
 				addWord: function(word) {
-					var item = $(document.createElement("li")).addClass("pillbox-item").html(word+"<span class='pillbox-delete'>x</span>");
+                    var wordTrimmed = word.trim();
+                    if (wordTrimmed.length > 0) {
+                        var item = $(document.createElement("li")).addClass("pillbox-item").html(wordTrimmed + "<span class='pillbox-delete'>x</span>");
 
-					oSelf.list.append(item);
-					oSelf.val("");
-					setTimeout(function(){
-						self.focus();
-					},100);
+                        oSelf.list.append(item);
+
+                        oSelf.val("");
+                        setTimeout(function () {
+                            self.focus();
+                        }, 100);
+                    }
 				},
 
 				buildAutoComplete: function() {
