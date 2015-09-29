@@ -41,9 +41,12 @@
 				},
 
                 checkWordValue : function(word) {
-                    var wordTrimmed = word.trim(), isAlreadyPresent = (oSelf.values.indexOf(wordTrimmed) >= 0);
+			if (word){
+				var wordTrimmed = word.trim(), isAlreadyPresent = (oSelf.values.indexOf(wordTrimmed) >= 0);
 
-                    return wordTrimmed.length > 0 && isAlreadyPresent === false;
+				return wordTrimmed.length > 0 && isAlreadyPresent === false;
+			}
+			return (false);
                 },
 
 				addWord: function(word) {
